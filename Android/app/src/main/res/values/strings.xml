@@ -12,6 +12,7 @@
     <string name="bt_not_enabled_leaving">This application will not work without enabling Bluetooth.</string>
     <string name="wifi_not_enabled_leaving">This application will not work without enabling WiFi.</string>
     <string name="info">info</string>
+    <string name="web3auth_project_id" translatable="false">BKSCCH2RIrtUdr79yWnNPKD2jJ4fLL12hyxliLO4_8vTySwl2xvKndlQ3_BywzDax_DVYOvXDuXspBMpnwcHxAI</string>
 
     <string name="Clear">Clear</string>
     <string name="Help">Help</string>

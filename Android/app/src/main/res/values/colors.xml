@@ -9,6 +9,11 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-
     <color name="black_overlay">#66000000</color>
+    <color name="transparent">#00ffffff</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="grey">#a1a4a2</color>
+    <color name="ash_grey">#3C3C3C</color>
+    <color name="dark_grey">#222222</color>
 </resources>
