@@ -209,5 +209,15 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <ProgressBar
+        android:id="@+id/login_progress"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        app:layout_constraintEnd_toStartOf="@+id/v_guideline2"
+        app:layout_constraintStart_toStartOf="@+id/v_guideline1"
+        app:layout_constraintTop_toBottomOf="@+id/btn_login_passwordless"
+        android:layout_marginTop="10dp"
+        android:visibility="invisible"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

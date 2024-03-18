@@ -4,42 +4,50 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import com.web3auth.core.Web3Auth;
 import com.web3auth.core.types.BuildEnv;
+import com.web3auth.core.types.ExtraLoginOptions;
 import com.web3auth.core.types.LoginParams;
 import com.web3auth.core.types.Network;
 import com.web3auth.core.types.Provider;
 import com.web3auth.core.types.Web3AuthOptions;
+import com.web3auth.core.types.Web3AuthOptionsKt;
 import com.web3auth.core.types.Web3AuthResponse;
 
 import org.opendroneid.android.R;
-import org.web3j.crypto.Credentials;
-import org.web3j.protocol.Web3j;
-import org.web3j.protocol.http.HttpService;
+
+
 
 import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.subjects.PublishSubject;
+
 
 public class Web3AuthLogin {
 
     private Web3Auth AUTH;
-    private Credentials credentials;
-    private Web3j web3;
 
+
+    public PublishSubject<String> status = PublishSubject.create();
     public Web3Auth getAUTH() {
         return AUTH;
     }
 
     Web3AuthLogin(Context context, Intent intent){
 
-
         this.AUTH = new Web3Auth(new Web3AuthOptions(
                 context,
                 context.getString(R.string.web3auth_project_id),
-                Network.SAPPHIRE_MAINNET,
-                BuildEnv.PRODUCTION,
+                Network.SAPPHIRE_DEVNET,
+                null,
                 Uri.parse("org.opendroneid.android://auth"),
-                "",
+                Web3AuthOptionsKt.getSdkUrl(null),
                 null,
                 null,
                 null,
@@ -49,30 +57,66 @@ public class Web3AuthLogin {
                 null));
         this.AUTH.setResultUrl(intent.getData());
 
-        CompletableFuture<Void> session_Response = this.AUTH.initialize();
-
-        session_Response.whenComplete((response,error)->{
-            if (error == null) {
-                Log.e("PrivKey: " ,this.AUTH.getPrivkey());
-                Log.e("ed25519PrivKey: " ,this.AUTH.getEd25519PrivKey());
-                Log.e("Web3Auth UserInfo", String.valueOf(this.AUTH.getUserInfo()));
-                credentials = Credentials.create(this.AUTH.getPrivkey());
-                web3 = Web3j.build(new HttpService("https://rpc.ankr.com/eth_sepolia"));
-            } else {
-                Log.d("MainActivity_Web3Auth", "Something went wrong");
-                // Ideally, you should initiate the login function here.
-            }
-        });
+        checkSession();
 
     }
 
-    void GoogleLogin()
+    void checkSession()
     {
-        Provider provider = Provider.GOOGLE;
+//        progressCircle.setVisibility(View.VISIBLE);
+        CompletableFuture<Void> session_Response = this.AUTH.initialize();
+
+        session_Response.whenComplete((response,error)-> {
+            if (error == null) {
+                Log.e("Tag", this.AUTH.getWeb3AuthResponse().toString());
+                Log.e("Tag", String.valueOf(this.AUTH.getUserInfo()));
+//                progressCircle.setVisibility(View.INVISIBLE);
+                status.onNext("Success");
+            }
+            else {
+                Log.e("Tag", "Error");
+                status.onError(new Throwable("Error"));
+//                progressCircle.setVisibility(View.INVISIBLE);
+            }
+        });
+    }
+
+    Provider createProvider(String providerType)
+    {
+        Provider provider = null;
+
+        switch (providerType){
+            case "Google":
+                provider = Provider.GOOGLE;
+                break;
+            case "Passwordless":
+                provider = Provider.EMAIL_PASSWORDLESS;
+                break;
+        }
+        return provider;
+    }
+
+    void loginWithProvider(Provider provider,String email)
+    {
+        ExtraLoginOptions extraLoginOptions = null;
+
+        if(provider == Provider.EMAIL_PASSWORDLESS)
+            extraLoginOptions = new ExtraLoginOptions(null,
+                    null,null
+                    ,null,null,
+                    null,null,
+                    null,null,
+                    null,null,
+                    null,email,
+                    null,null,
+                    null,null,
+                    null,null,
+                    null,null);
+
 
         CompletableFuture<Web3AuthResponse> loginFuture = this.AUTH.login(new LoginParams(provider,
                 null,
-                null,
+                extraLoginOptions,
                 null,
                 null,
                 null,
@@ -82,35 +126,26 @@ public class Web3AuthLogin {
         loginFuture.whenComplete((web3AuthResponse, error) -> {
             if (error == null) {
                 Log.e("Tag", "Success");
-                Log.e("Tag", web3AuthResponse.toString());
-                credentials = Credentials.create(this.AUTH.getPrivkey());
-                web3 = Web3j.build(new HttpService("https://rpc.ankr.com/eth_sepolia"));
+                status.onNext("Success");
             } else {
                 Log.e("Tag", "Error");
+                status.onError(new Throwable("Error"));
             }
         });
+
     }
 
-    void PasswordlessLogin(String email)
+
+    void logOut()
     {
-        Provider provider = Provider.EMAIL_PASSWORDLESS;
-        LoginParams loginParams = new LoginParams(provider,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
+        CompletableFuture<Void> future = this.AUTH.logout();
 
-        CompletableFuture<Web3AuthResponse> loginFuture = this.AUTH.login(loginParams);
-
-        loginFuture.whenComplete((web3AuthResponse, error) -> {
+        future.whenComplete((web3AuthResponse, error) -> {
             if (error == null) {
-                Log.e("Tag", "Success");
+                Log.e("Tag", "Successful log out");
                 Log.e("Tag", web3AuthResponse.toString());
             } else {
-                Log.e("Tag", "Error");
+                Log.e("Tag", "Error while log out");
             }
         });
 
